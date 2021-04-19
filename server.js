@@ -16,6 +16,7 @@ mongoose.set('useFindAndModify', false);
 const bodyParser = require('koa-bodyparser');
 const fs = require('fs')
 
+const port = process.env.PORT || 5000;
 const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET } = process.env;
 
 const app = new Koa();
@@ -158,4 +159,4 @@ app
   .use(serve('build'))
 
 
-app.listen(5000, () => console.log('running on port 5000'))
+app.listen(port, () => console.log('running on port port'))
