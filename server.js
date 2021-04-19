@@ -10,7 +10,6 @@ const mount = require('koa-mount')
 const serve = require('koa-static');
 
 global.fetch = require("node-fetch");
-
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
 const bodyParser = require('koa-bodyparser');
@@ -74,7 +73,7 @@ app
 
 
 
-
+        const { orgin } = ctx.request
         await Shop.findOneAndUpdate(
           { name: shop },
           {
@@ -88,11 +87,11 @@ app
 
         const webhook = {
           "topic": "orders/create",
-          "address": "https://8715b1e68be9.ngrok.io/api/tax/webhook",
+          "address": `${orgin}/api/tax/webhook`,
           "format": "json"
         }
 
-        const create_webhook_request = await (await fetch(`https://${name}/admin/api/2021-04/webhooks.json`, {
+        const create_webhook_request = await (await fetch(`https://${shop}/admin/api/2021-04/webhooks.json`, {
           method: 'POST',
           headers: {
             'X-Shopify-Access-Token': accessToken,
