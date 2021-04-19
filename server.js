@@ -17,7 +17,7 @@ const bodyParser = require('koa-bodyparser');
 const fs = require('fs')
 
 const port = process.env.PORT || 5000;
-const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET } = process.env;
+const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, MONGO_CONNECTION } = process.env;
 
 const app = new Koa();
 const router = new Router();
@@ -91,7 +91,7 @@ app
           "address": "https://8715b1e68be9.ngrok.io/api/tax/webhook",
           "format": "json"
         }
-        
+
         const create_webhook_request = await (await fetch(`https://${name}/admin/api/2021-04/webhooks.json`, {
           method: 'POST',
           headers: {
@@ -118,7 +118,7 @@ app.on('error', (err, ctx) => {
   }
 })
 
-mongoose.connect('mongodb://localhost/ends_taxer_db', {
+mongoose.connect(MONGO_CONNECTION, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
   useCreateIndex: true,
