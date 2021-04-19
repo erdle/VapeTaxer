@@ -85,20 +85,20 @@ app
           { upsert: true }).exec();
 
 
-        const webhook = {
-          "topic": "orders/create",
-          "address": `${orgin}/api/tax/webhook`,
-          "format": "json"
-        }
+        // const webhook = {
+        //   "topic": "orders/create",
+        //   "address": `${orgin}/api/tax/webhook`,
+        //   "format": "json"
+        // }
 
-        const create_webhook_request = await (await fetch(`https://${shop}/admin/api/2021-04/webhooks.json`, {
-          method: 'POST',
-          headers: {
-            'X-Shopify-Access-Token': accessToken,
-            'content-type': 'application/json'
-          },
-          body: JSON.stringify({ webhook })
-        })).json()
+        // const create_webhook_request = await (await fetch(`https://${shop}/admin/api/2021-04/webhooks.json`, {
+        //   method: 'POST',
+        //   headers: {
+        //     'X-Shopify-Access-Token': accessToken,
+        //     'content-type': 'application/json'
+        //   },
+        //   body: JSON.stringify({ webhook })
+        // })).json()
 
 
         return ctx.redirect('/');
