@@ -1,7 +1,7 @@
 const Router = require('koa-router');
 const cors = require('@koa/cors');
 const router = new Router();
-const StateTax = require("../models/StateTax")
+const TaxRate = require("../models/TaxRate")
 const Checkout = require("../models/Checkout")
 const Shop = require("../models/Shop")
 
@@ -133,11 +133,11 @@ async function getTaxLineItems(checkout, state, shop) {
 
     const line_items = checkout.line_items;
 
-    const state_taxes = await StateTax.find({ "state.shortcode": state, shop: shop.name })
+    const tax_rates = await TaxRate.find({ "state.shortcode": state, shop: shop.name })
 
     let calculated_taxes = []
     for (const line_item of line_items) {
-        const line_item_taxes = await calcProductTaxes(line_item, state_taxes, shop)
+        const line_item_taxes = await calcProductTaxes(line_item, tax_rates, shop)
         calculated_taxes = [...line_item_taxes, ...calculated_taxes]
     }
 
@@ -181,7 +181,7 @@ async function getTaxLineItems(checkout, state, shop) {
     return tax_line_items;
 }
 
-async function calcProductTaxes(line_item, state_taxes, shop) {
+async function calcProductTaxes(line_item, tax_rates, shop) {
 
     const product_request = await (await fetch(`https://${shop.name}/admin/api/2021-04/products/${line_item.product_id}.json`, {
         method: 'GET',
@@ -190,13 +190,15 @@ async function calcProductTaxes(line_item, state_taxes, shop) {
             'content-type': 'application/json'
         }
     })).json()
+
     if (product_request.errors) {
         console.log(product_request.errors)
         throw product_request.errors
     }
+
     const product = product_request.product
     const taxes = []
-    for (const state_tax of state_taxes) {
+    for (const state_tax of tax_rates) {
         if (product.tags.indexOf(state_tax.tax.tag) > -1) {
             const variant = product.variants.find(variant => variant.id == line_item.variant_id)
             const tax_value = await calcConcreteTax(state_tax, variant, shop)

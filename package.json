@@ -2,7 +2,7 @@
   "name": "starter",
   "version": "1.0.0",
   "scripts": {
-    "start": "nodemon",
+    "start": "node server.js",
     "client": "cd client && yarn start",
     "server": "nodemon --inspect ./server.js 9229",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""

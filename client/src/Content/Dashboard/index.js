@@ -94,9 +94,9 @@ export default function Dashboard() {
           {
             // url: `${match.url}`,
             onClick:()=>{
-              history.push(`/dashboard/StateTaxes`)
+              history.push(`/dashboard/TaxRates`)
             },
-            label: 'StateTaxes',
+            label: 'TaxRates',
             icon: HomeMajor,
           },
           {

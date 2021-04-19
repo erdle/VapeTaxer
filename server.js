@@ -21,11 +21,8 @@ const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET } = process.env;
 const app = new Koa();
 const router = new Router();
 
-const State = require("./models/State")
-const StateTax = require("./models/StateTax")
-const Tax = require("./models/Tax")
+const TaxRate = require("./models/TaxRate")
 const Shop = require("./models/Shop")
-
 
 const tax = require("./controllers/tax")
 
@@ -73,7 +70,10 @@ app
       accessMode: 'offline',
       async afterAuth(ctx) {
         const { shop, accessToken } = ctx.session;
-        
+
+
+
+
         await Shop.findOneAndUpdate(
           { name: shop },
           {
@@ -84,15 +84,29 @@ app
           },
           { upsert: true }).exec();
 
+
+        const webhook = {
+          "topic": "orders/create",
+          "address": "https://8715b1e68be9.ngrok.io/api/tax/webhook",
+          "format": "json"
+        }
+        
+        const create_webhook_request = await (await fetch(`https://${name}/admin/api/2021-04/webhooks.json`, {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({ webhook })
+        })).json()
+
+
         return ctx.redirect('/');
       },
     }),
   )
   // everything after this point will require authentication
   .use(verifyRequest({ fallbackRoute: '/install', authRoute: '/auth', }))
-
-
-
 
 app.on('error', (err, ctx) => {
   console.log('error', err);
@@ -113,9 +127,9 @@ const db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', async function () {
 
-  const stateTax = await StateTax.findOne({})
-  if (!stateTax) {
-    await StateTax.insertMany([
+  const taxRate = await TaxRate.findOne({})
+  if (!taxRate) {
+    await TaxRate.insertMany([
       {
         tax: { name: "e-liquid", tag: "taxable_eliquid", shop: "babstest.myshopify.com" },
         state: { name: "California", shortcode: "CA" },
