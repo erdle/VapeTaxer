@@ -31,55 +31,16 @@ const Form: React.FC = () => {
         <Page>
             <Layout>
                 <Layout.Section oneThird>
-                    <Card title="Product issues">
+                    <Card title="Some cool stuff coming soon">
 
                         <Card.Section>
-                            <DisplayText size="large">13</DisplayText>
+                            <DisplayText size="large">Coming soon</DisplayText>
                         </Card.Section>
-                        <Card.Section title="Issues">
-                            <ResourceList
-                                resourceName={{ singular: 'sale', plural: 'sales' }}
-                                items={[
-                                    {
-                                        sales: 'Image alt text not set',
-                                        amount: '5',
-                                        url: 'reports/orders',
-                                    },
-                                    {
-                                        sales: 'Variants without image',
-                                        amount: '2',
-                                        url: 'reports/returns',
-                                    },
-                                    {
-                                        sales: 'No tag',
-                                        amount: '6',
-                                        url: 'reports/returns',
-                                    },
-                                ]}
-                                renderItem={(item) => {
-                                    const { sales, amount, url } = item;
-                                    return (
-                                        <ResourceList.Item
-                                            url={url}
-                                            accessibilityLabel={`View Sales for ${sales}`}
-                                            onClick={() => { }}
-                                            id={url}
-                                        >
-                                            <Stack>
-                                                <Stack.Item fill>{sales}</Stack.Item>
-                                                <Stack.Item>{amount}</Stack.Item>
-                                            </Stack>
-                                        </ResourceList.Item>
-                                    );
-                                }}
-                            />
-                        </Card.Section>
+                        
                     </Card>
                 </Layout.Section>
                 <Layout.Section oneThird>
-                    <Card title="Collection issues" sectioned>
-
-                    </Card>
+                   
                 </Layout.Section>
             </Layout >
         </Page>
