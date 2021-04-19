@@ -36,11 +36,11 @@ export default function Dashboard() {
       },
     },
     logo: {
-      width: 124,
-      topBarSource: '/logo.png',
+      width: 37,
+      topBarSource: '/logo.svg',
       url: 'https://vapejuicedepot.com',
-      accessibilityLabel: 'Vape Juice Depot',
-      contextualSaveBarSource: '/logo.png',
+      accessibilityLabel: 'ENDS taxer',
+      contextualSaveBarSource: '/logo.svg',
     },
   };
 
