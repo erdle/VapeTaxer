@@ -84,6 +84,7 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
 
         const tax_items = await getTaxLineItems(checkout_request.checkout, "CA", shop)
         const existing_line_items = line_items.filter(line_item => line_item.vendor != "ENDS_taxer").map(line_item => { return { variant_id: line_item.variant_id, quantity: line_item.quantity } })
+        
         const line_items_with_tax = [
             ...existing_line_items,
             ...tax_items
@@ -140,6 +141,9 @@ async function getTaxLineItems(checkout, state, shop) {
         const line_item_taxes = await calcProductTaxes(line_item, tax_rates, shop)
         calculated_taxes = [...line_item_taxes, ...calculated_taxes]
     }
+
+    if(calculated_taxes.length == 0)
+        return []
 
     const variants = calculated_taxes.map(calculated_tax => {
         return {
