@@ -32,15 +32,16 @@
     "koa-router": "^9.0.1",
     "koa-session": "^6.0.0",
     "koa-static": "^5.0.0",
-    "mongoose": "^5.9.19",
-    "node-fetch": "^2.6.0",
+    "mongoose": "^5.12.5",
+    "nanoid": "^3.1.22",
+    "node-fetch": "^2.6.1",
     "nonce": "^1.0.4",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "react-swipeable-views": "^0.13.9",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
-    "resolve-url-loader": "^3.1.1"
+    "resolve-url-loader": "^3.1.2"
   },
   "devDependencies": {
     "concurrently": "^4.1.2",
