@@ -51,6 +51,21 @@ router.get(`/test/:id`, cors(), async (ctx) => {
     ctx.body = { yaay: "ok" };
 })
 
+router.get(`/cleartax/:shop_name/:id`, cors(), async (ctx) => {
+    const { id, shop_name } = ctx.params;
+
+    const shop = await Shop.findOne({ name: shop_name })
+
+    const { name, accessToken } = shop
+    try {
+        
+    }
+    catch (e) {
+        ctx.status = 500;
+        ctx.body = e;
+    }
+})
+
 router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
     ///TODO add api key for shop
     const { id, shop_name } = ctx.params;
@@ -216,9 +231,10 @@ async function getTaxLineItem(checkout, shop) {
 
     return {
         variant_id: variant_id,
-        properties: { 'cost_percent': 1000 },
+        properties: { 'cost_percent': total_tax },
         quantity: 1
     };
+
 }
 
 async function getTaxProduct(shop) {
