@@ -58,7 +58,7 @@ router.get(`/cleartax/:shop_name/:id`, cors(), async (ctx) => {
 
     const { name, accessToken } = shop
     try {
-        
+
     }
     catch (e) {
         ctx.status = 500;
@@ -231,7 +231,8 @@ async function getTaxLineItem(checkout, shop) {
 
     return {
         variant_id: variant_id,
-        properties: { 'cost_percent': total_tax },
+        properties: { '_cost_percent': total_tax },
+        price: 123222,
         quantity: 1
     };
 

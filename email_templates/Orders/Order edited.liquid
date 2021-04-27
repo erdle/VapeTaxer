@@ -2,7 +2,7 @@
 
 {% for line in line_items %}
 {% if line.product.type == "ENDS_tax" %}
-{% assign excise_tax = excise_tax|plus:line.final_price %}.
+{% assign excise_tax = excise_tax|plus:line.final_price %}
 {% endif %}
 {% endfor %}
 
@@ -329,19 +329,7 @@
 
                                                             {% endif %}
                                                             
-                                                            {% if excise_tax %}
-                                                            <tr class="subtotal-line">
-                                                                <td class="subtotal-line__title">
-                                                                    <p>
-                                                                        <span>Excise Tax ({{shipping_address.province}}
-                                                                            Vapor Tax)</span>
-                                                                    </p>
-                                                                </td>
-                                                                <td class="subtotal-line__value">
-                                                                    <strong>{{ excise_tax | money }}</strong>
-                                                                </td>
-                                                            </tr>
-                                                            {% endif %}
+                                                            
 
                                                             <tr class="subtotal-line">
                                                                 <td class="subtotal-line__title">
@@ -350,7 +338,8 @@
                                                                     </p>
                                                                 </td>
                                                                 <td class="subtotal-line__value">
-                                                                    <strong>{{ tax_price | money }}</strong>
+                                                                    {% assign total_taxes = excise_tax | plus:tax_price %}
+                                                                    <strong>{{ total_taxes | money }}</strong>
                                                                 </td>
                                                             </tr>
 
@@ -384,13 +373,12 @@
                                                             </tr>
 
                                                         </table>
-
-                                                        {% if total_discounts > 0 %}
+                                                        <!-- {% if total_discounts > 0 %}
                                                         <p class="total-discount">
                                                             You saved <span
                                                                 class="total-discount--amount">{{ total_discounts | money }}</span>
                                                         </p>
-                                                        {% endif %}
+                                                        {% endif %} -->
 
                                                         {% assign transaction_size = 0 %}
                                                         {% assign transaction_amount = 0 %}

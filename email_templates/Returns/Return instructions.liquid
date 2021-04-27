@@ -1,3 +1,9 @@
+{% for line in return.line_items %}
+{% if line.product.type == "ENDS_tax" %}
+{% assign excise_tax = excise_tax|plus:line.final_price %}
+{% endif %}
+{% endfor %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,6 +126,7 @@
               
           <table class="row">
   {% for line_item in return.line_items %}
+  {% if line_item.product.type == 'ENDS_tax' %}{% continue %}{% endif %}
   <tr class="order-list__item">
     <td class="order-list__item__cell">
       <table>

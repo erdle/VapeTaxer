@@ -5,6 +5,7 @@ W{% endif %}e noticed there {% if item_count == 1 %}was an item{% else %}were so
 If you're ready to complete your order, your cart is waiting for your return.
 {% endcapture %}
 
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -116,6 +117,7 @@ If you're ready to complete your order, your cart is waiting for your return.
             
 <table class="row">
   {% for line in line_items %}
+  {% if line.product.type == 'ENDS_tax' %}{% continue %}{% endif %}
   <tr class="order-list__item">
     <td class="order-list__item__cell">
       <table>

@@ -133,7 +133,8 @@
 
 <!-- Bold 1 --> 
 {% assign hidden_variant_ids = "" %} 
-{% for line in fulfillment.fulfillment_line_items %}   
+{% for line in fulfillment.fulfillment_line_items %}  
+{% if line.line_item.product.type == 'ENDS_tax' %}{% continue %}{% endif %}
 {% if line.line_item.properties._boldVariantIds %}     
 {% assign hidden_variant_ids = hidden_variant_ids | append: ',' %}     
 {% assign hidden_variant_ids = hidden_variant_ids | append: line.line_item.properties._boldVariantIds %}   

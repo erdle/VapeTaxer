@@ -7,6 +7,12 @@
 {% endif %}
 {% capture email_body %}Total amount refunded: <strong>{{ amount | money_with_currency }}</strong>{% endcapture %}
 
+{% for line in subtotal_line_items %}
+{% if line.product.type == "ENDS_tax" %}
+{% assign excise_tax = excise_tax|plus:line.final_price %}
+{% endif %}
+{% endfor %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -99,6 +105,7 @@
             
 <table class="row">
   {% for line in subtotal_line_items %}
+  {% if line.product.type == 'ENDS_tax' %}{% continue %}{% endif %}
   <tr class="order-list__item">
     <td class="order-list__item__cell">
       <table>
@@ -206,7 +213,7 @@
     </p>
   </td>
   <td class="subtotal-line__value">
-    <strong>{{ subtotal_price | money }}</strong>
+    <strong>{{ subtotal_price | minus: excise_tax | money }}</strong>
   </td>
 </tr>
 
@@ -261,8 +268,9 @@
     </p>
   </td>
   <td class="subtotal-line__value">
-    <strong>{{ tax_price | money }}</strong>
-  </td>
+    {% assign total_taxes = excise_tax | plus:tax_price %}
+    <strong>{{ total_taxes | money }}</strong>
+    </td>
 </tr>
 
 
@@ -295,12 +303,12 @@
 </tr>
 
       </table>
-
+<!-- 
       {% if total_discounts > 0 %}
         <p class="total-discount">
           You saved <span class="total-discount--amount">{{ total_discounts | money }}</span>
         </p>
-      {% endif %}
+      {% endif %} -->
 
       {% assign transaction_size = 0 %}
       {% assign transaction_amount = 0 %}

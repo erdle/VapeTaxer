@@ -22,7 +22,7 @@ import {
     DisplayText,
     Page
 } from '@shopify/polaris';
-
+import TaxRatesList from "./TaxRates/Index"
 import { XYPlot, XAxis, YAxis, HorizontalGridLines, LineSeries, RadialChart } from 'react-vis';
 
 const Form: React.FC = () => {
@@ -32,18 +32,16 @@ const Form: React.FC = () => {
             <Layout>
                 <Layout.Section oneThird>
                     <Card title="Some cool stuff coming soon">
-
                         <Card.Section>
                             <DisplayText size="large">Coming soon</DisplayText>
                         </Card.Section>
-                        
                     </Card>
                 </Layout.Section>
                 <Layout.Section oneThird>
-                   
                 </Layout.Section>
             </Layout >
         </Page>
+        <TaxRatesList></TaxRatesList>
     </div >
 }
 
