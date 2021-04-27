@@ -7,7 +7,7 @@ import {
     ChevronRightMinor
 } from '@shopify/polaris-icons';
 export default function TaxRatesList({ taxRateGetter }) {
-    const page_size = 10 //TODO config
+    const page_size = 20 //TODO config
     const [taxRateRows, settaxRateRows] = useState([]);
     const [page, setPage] = useState(0);
     const [count, setCount] = useState(0);
@@ -15,7 +15,7 @@ export default function TaxRatesList({ taxRateGetter }) {
     const handleChangePage = (newPage = 0) => {
         if (newPage >= 0 && count / page_size >= newPage) {
             setPage(newPage);
-            taxRateGetter && taxRateGetter(newPage).then(res => {
+            taxRateGetter && taxRateGetter(newPage, page_size).then(res => {
                 const rows = toArrayOfProps(res.data, columns)
                 setCount(res.count)
                 settaxRateRows(rows);
@@ -31,8 +31,8 @@ export default function TaxRatesList({ taxRateGetter }) {
     }, [page, count])
 
     const columns = [
-        { name: "state" , renderer: (tax_rate) =><div>{tax_rate.state.name}({tax_rate.state.shortcode})</div>},
-        { name: "product", renderer: (tax_rate) =><div>{tax_rate.tax.name} #{tax_rate.tax.tag}</div>},
+        { name: "state", renderer: (tax_rate) => <div>{tax_rate.state.name}({tax_rate.state.shortcode})</div> },
+        { name: "product", renderer: (tax_rate) => <div>{tax_rate.tax.name} #{tax_rate.tax.tag}</div> },
         { name: "taxType" },
         { name: "value" },
     ]
