@@ -5,12 +5,11 @@ const TaxRate = require('../models/TaxRate')
 router.get(`/:page/:page_size/:sort`, async (ctx) => {
     const { shop } = ctx.session;
     const { page, sort, page_size } = ctx.params;
-    const count = await TaxRate.find({ shop }).estimatedDocumentCount()
+    const count = await TaxRate.find({ shop }).count()
     const tax_rates = await TaxRate.find({ shop }).skip(page * page_size).limit(page_size * 1).sort({ [`${sort || 'state.name'}`]: -1 });
     ctx.status = 200;
     ctx.body = { data: tax_rates, count: count };
 })
-
 
 router.post('/', async (ctx) => {
     const { shop } = ctx.session;

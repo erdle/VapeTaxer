@@ -71,9 +71,7 @@ app
       accessMode: 'offline',
       async afterAuth(ctx) {
         const { shop, accessToken } = ctx.session;
-
-
-
+        
         const { orgin } = ctx.request
         await Shop.findOneAndUpdate(
           { name: shop },
