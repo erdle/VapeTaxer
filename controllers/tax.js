@@ -47,6 +47,7 @@ router.get(`/addwebhook/:shop_name`, async (ctx) => {
         ctx.body = e;
     }
 })
+
 router.get(`/test/:id`, cors(), async (ctx) => {
     ctx.status = 200;
     ctx.body = { yaay: "ok" };
@@ -102,7 +103,7 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
             return
         }
         const no_changes = checkout_data && checkout_data.updated_at && checkout_data.updated_at.getTime() == new Date(checkout_request.checkout.updated_at).getTime()
-        const domestik = checkout_request.checkout && checkout_request.checkout.shipping && checkout_request.checkout.shipping.country_code == "US"
+        const domestik = checkout_request.checkout && checkout_request.checkout.shipping_address && checkout_request.checkout.shipping_address.country_code == "US"
         if (no_changes || !domestik) {
             ctx.status = 304;
             ctx.body = { yaay: "ok" };
