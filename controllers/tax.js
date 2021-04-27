@@ -101,8 +101,9 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
             ctx.body = checkout_request.errors;
             return
         }
-
-        if (checkout_data && checkout_data.updated_at && checkout_data.updated_at.getTime() == new Date(checkout_request.checkout.updated_at).getTime()) {
+        const no_changes = checkout_data && checkout_data.updated_at && checkout_data.updated_at.getTime() == new Date(checkout_request.checkout.updated_at).getTime()
+        const domestik = checkout_request.checkout && checkout_request.checkout.shipping && checkout_request.checkout.shipping.country_code == "US"
+        if (no_changes || !domestik) {
             ctx.status = 304;
             ctx.body = { yaay: "ok" };
             return
@@ -315,7 +316,7 @@ function getMLfromString(text) {
 }
 
 async function getTaxLineItem(checkout, shop) {
-    const total_tax = await calculateTotalTaxByCheckout(checkout, "CA", shop)
+    const total_tax = await calculateTotalTaxByCheckout(checkout, checkout.shipping_address.province_code, shop)
     const tax_product = (await getTaxProduct(shop)) || (await createTaxProduct(shop));
     const variant_id = tax_product && tax_product.variants && tax_product.variants[0] && tax_product.variants[0].id;
 
