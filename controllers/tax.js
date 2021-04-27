@@ -112,7 +112,6 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
 
         const all_line_items = checkout_request.checkout.line_items;
 
-
         const existing_line_items = all_line_items.filter(line_item => line_item.vendor != "ENDS_taxer").map(line_item => { return { variant_id: line_item.variant_id, quantity: line_item.quantity } })
         const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop)
         const line_items_with_tax = [
