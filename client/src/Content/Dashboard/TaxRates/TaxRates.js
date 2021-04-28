@@ -36,7 +36,7 @@ export default function TaxRatesList({ taxRateGetter }) {
         {
             name: "taxType", renderer: (tax_rate) => {
 
-                const { unit, min, max } = tax_rate.bound
+                const { unit, min, max } = (tax_rate.bound || {})
                 const from = min ? `From ${min}${unit}` : ''
                 const to = max ? `To ${max}${unit}` : ''
 
