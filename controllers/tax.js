@@ -387,6 +387,7 @@ async function createTaxProduct(shop) {
         },
         body: JSON.stringify(new_tax_product_data)
     })).json()
+    
     if (new_tax_product_request.errors) {
         throw new_tax_product_request.errors
     }

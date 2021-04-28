@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { DataTable, Link, Button, Icon, ButtonGroup, Stack, TextContainer } from '@shopify/polaris';
+import { DataTable, Link, Button, Icon, ButtonGroup, Stack, TextContainer, Tag } from '@shopify/polaris';
 import { toArrayOfProps } from "../../../utils/dataTableHelper"
 
 import {
@@ -31,9 +31,18 @@ export default function TaxRatesList({ taxRateGetter }) {
     }, [page, count])
 
     const columns = [
-        { name: "state", renderer: (tax_rate) => <div>{tax_rate.state.name}({tax_rate.state.shortcode})</div> },
-        { name: "product", renderer: (tax_rate) => <div>{tax_rate.tax.name} #{tax_rate.tax.tag}</div> },
-        { name: "taxType" },
+        { name: "state", renderer: (tax_rate) => <div>{tax_rate.state.name} ({tax_rate.state.shortcode})</div> },
+        { name: "product", renderer: (tax_rate) => <div>{tax_rate.tax.name} <Tag>{tax_rate.tax.tag}</Tag></div> },
+        {
+            name: "taxType", renderer: (tax_rate) => {
+
+                const { unit, min, max } = tax_rate.bound
+                const from = min ? `From ${min}${unit}` : ''
+                const to = max ? `To ${max}${unit}` : ''
+
+                return <div>{tax_rate.taxType} {unit && <Tag> {from} {to} </Tag>}</div>
+            }
+        },
         { name: "value" },
     ]
     useEffect(() => {

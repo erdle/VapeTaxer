@@ -15,6 +15,7 @@ router.post('/', async (ctx) => {
     const { shop } = ctx.session;
     try {
         const data = ctx.request.body;
+
         const tax_rate = {
             tax: { name: data.tax_name, tag: data.tax_tag },
             state: { name: data.state_name, shortcode: data.state_shortcode },
@@ -22,6 +23,12 @@ router.post('/', async (ctx) => {
             taxType: data.taxType,
             value: data.value,
         }
+        
+        if (data.bound_unit)
+            tax_rate.bound = {
+                unit: data.bound_unit, min: data.bound_min, max: data.bound_max
+            }
+
         let new_data = await TaxRate.create(tax_rate);
         ctx.status = 201;
         ctx.body = new_data;
