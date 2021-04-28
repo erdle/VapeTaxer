@@ -237,13 +237,17 @@ async function calcLineTaxes(line_item, tax_rates, token, shop) {
     let tax = 0;
     for (const state_tax of tax_rates) {
         if (product.tags.indexOf(state_tax.tax.tag) > -1) {
+
             const variant = product.variants.find(variant => variant.id == line_item.variant_id)
-            const tax_value = await calcConcreteTax(state_tax, variant, product, shop)
+
+            const is_out_of_bounds = checkOutofBounds(state_tax, variant, product)
+
+            const tax_value = is_out_of_bounds ? 0 : await calcConcreteTax(state_tax, variant, product, shop)
             tax += line_item.quantity * tax_value;
 
             await TaxLine.create({
                 checkout_id: token,
-                variant_id: line_item.id,
+                variant_id: line_item.variant_id,
                 tax_rate_id: state_tax._id,
                 value: tax_value,
                 quantity: line_item.quantity,
@@ -253,6 +257,17 @@ async function calcLineTaxes(line_item, tax_rates, token, shop) {
     }
 
     return tax;
+}
+
+function checkOutofBounds(tax_rate, variant, product) {
+
+    const { bound } = tax_rate
+    if (!bound || !bound.unit)
+        return false
+
+    const unit_value = getUnitValue(bound.unit, variant.title, product.title)
+    return (bound.min && unit_value < bound.min) || (bound.max && unit_value > bound.max)
+
 }
 
 async function calcConcreteTax(state_tax, variant, product, shop) {
@@ -294,22 +309,25 @@ async function calcConcreteTax(state_tax, variant, product, shop) {
                 return state_tax.value * 3 * 100
         }
         case 'ml_fixed': {
-            const regex = /(\d+(?:.\d+)?)\s*(ml)\b/i;
-            const ml_from_variant_title = getMLfromString(variant.title)
-            const ml_from_product = getMLfromString(product.title)
-            if (ml_from_variant_title)
-                return state_tax.value * ml_from_variant_title * 100
-            else if (ml_from_product)
-                return state_tax.value * ml_from_product * 100
+            const mil = getUnitValue('ml', variant.title, product.title)
+            if (mil)
+                return state_tax.value * mil * 100
             else
                 return state_tax.value * 60 * 100
         }
     }
 }
 
-function getMLfromString(text) {
-    const regex = /(\d+(?:.\d+)?)\s*(ml)\b/i;
+function getUnitValue(unit, variant_title, product_title) {
 
+    const unit_from_variant_title = getUnitfromString(unit, variant_title)
+    const unit_from_product = getUnitfromString(unit, product_title)
+
+    return unit_from_variant_title || unit_from_product
+}
+
+function getUnitfromString(unit, text) {
+    const regex = new RegExp(`(\\d+(?:.\\d+)?)\\s*(${unit})\\b`, 'i')
     const reg_match = text.match(regex)
     const result = Number(reg_match && reg_match[1])
     return typeof result == "number" && result
