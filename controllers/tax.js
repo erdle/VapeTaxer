@@ -53,20 +53,6 @@ router.get(`/test/:id`, cors(), async (ctx) => {
     ctx.body = { yaay: "ok" };
 })
 
-router.get(`/cleartax/:shop_name/:id`, cors(), async (ctx) => {
-    const { id, shop_name } = ctx.params;
-
-    const shop = await Shop.findOne({ name: shop_name })
-
-    const { name, accessToken } = shop
-    try {
-
-    }
-    catch (e) {
-        ctx.status = 500;
-        ctx.body = e;
-    }
-})
 
 router.get(`/calctax/:shop_name/:variant_id/:state`, cors(), async (ctx) => {
     const { variant_id, shop_name, state } = ctx.params;
@@ -118,6 +104,12 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
             tax_line_item,
             ...existing_line_items,
         ]
+
+        if (!(tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax > 0)) {
+            ctx.status = 304;
+            ctx.body = { yaay: "ok" };
+            return
+        }
 
         const update_checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
             method: 'PUT',
@@ -387,7 +379,7 @@ async function createTaxProduct(shop) {
         },
         body: JSON.stringify(new_tax_product_data)
     })).json()
-    
+
     if (new_tax_product_request.errors) {
         throw new_tax_product_request.errors
     }
