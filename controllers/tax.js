@@ -74,7 +74,6 @@ router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
 
     try {
 
-
         const checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
             method: 'GET',
             headers: {
@@ -108,7 +107,7 @@ router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
             ...(tax_price > 0 ? [tax_line_item] : []),
             ...existing_line_items,
         ]
-        
+
         const update_checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
             method: 'PUT',
             headers: {
@@ -288,40 +287,43 @@ async function calcConcreteTax(state_tax, variant, product, shop) {
             return state_tax.value * 100
         }
         case 'per_pod_or_cartridge': {
-            const option_values = [variant.option1 && variant.option1.toLocaleLowerCase(), variant.option2 && variant.option2.toLocaleLowerCase(), variant.option3 && variant.option3.toLocaleLowerCase()]
-            const packs_title = option_values && option_values.find(op => op.indexOf("pack of") > -1)
-            const variant_packs = Number(packs_title && packs_title.replace("pack of", ""))
-            const product_title_packs = Number(product.title.split("pack of") && product.title.split("pack of")[1])
-            if (typeof variant_packs == "number")
-                return state_tax.value * variant_packs * 100
-            else if (typeof product_title_packs == "number")
-                return state_tax.value * product_title_packs * 100
-            else
-                return state_tax.value * 3 * 100
+            const number_of_packs = getUnitValue('pack of', variant.title, product.title, true) || 1
+            const bundle = getUnitValue('x', variant.title, product.title) || getUnitValue('x', variant.title, product.title, true) || 1
+            return state_tax.value * number_of_packs * 100 * bundle
         }
         case 'ml_fixed': {
-            const mil = getUnitValue('ml', variant.title, product.title)
-            if (mil)
-                return state_tax.value * mil * 100
-            else
-                return state_tax.value * 60 * 100
+            const mil = getUnitValue('ml', variant.title, product.title) || 60
+            const bundle = getUnitValue('x', variant.title, product.title) || getUnitValue('x', variant.title, product.title, true) || 1
+            return state_tax.value * mil * 100 * bundle
         }
     }
 }
 
-function getUnitValue(unit, variant_title, product_title) {
+function getUnitValue(unit, variant_title, product_title, inverse = false) {
 
-    const unit_from_variant_title = getUnitfromString(unit, variant_title)
-    const unit_from_product = getUnitfromString(unit, product_title)
+    const unit_from_variant_title = getUnitfromString(unit, variant_title, inverse)
+    const unit_from_product = getUnitfromString(unit, product_title, inverse)
 
     return unit_from_variant_title || unit_from_product
 }
 
-function getUnitfromString(unit, text) {
-    const regex = new RegExp(`(\\d+(?:.\\d+)?)\\s*(${unit})\\b`, 'i')
+function getUnitfromString(unit, text, inverse = false) {
+    const regexp_string = inverse ? `(\\s*(${unit} ?)\\d+(?:.\\d+)?)` : `(\\d+(?:.\\d+)?)\\s*(${unit})`;
+    const regex = new RegExp(regexp_string, 'i')
     const reg_match = text.match(regex)
-    const result = Number(reg_match && reg_match[1])
-    return typeof result == "number" && result
+
+    let result = Number(reg_match && reg_match[1])
+    if (!inverse)
+        return Number(reg_match && reg_match[1])
+
+    //Here we have unit with number so we should extract number with one more match
+    const result_with_unit = reg_match && reg_match[1]
+    //Khir vi ko
+    if (result_with_unit) {
+        const result = result_with_unit.match(/\d+/g);
+        return Number(result && result[0])
+    }
+    return null
 }
 
 async function getTaxLineItem(checkout, shop, province_code) {
