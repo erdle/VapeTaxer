@@ -54,7 +54,7 @@ router.get(`/test/:id`, cors(), async (ctx) => {
 })
 
 
-router.get(`/calctax/:shop_name/:variant_id/:state`, cors(), async (ctx) => {
+router.get(`/getVariantTax/:shop_name/:variant_id/:state`, cors(), async (ctx) => {
     const { variant_id, shop_name, state } = ctx.params;
     const shop = await Shop.findOne({ name: shop_name })
     const { name, accessToken } = shop
@@ -63,9 +63,10 @@ router.get(`/calctax/:shop_name/:variant_id/:state`, cors(), async (ctx) => {
     ctx.body = { tax: result };
 })
 
-router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
+
+router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
     ///TODO add api key for shop
-    const { id, shop_name } = ctx.params;
+    const { id, shop_name, state } = ctx.params;
 
     const shop = await Shop.findOne({ name: shop_name })
 
@@ -73,7 +74,6 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
 
     try {
 
-        const checkout_data = await Checkout.findOne({ token: id })
 
         const checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
             method: 'GET',
@@ -88,6 +88,10 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
             ctx.body = checkout_request.errors;
             return
         }
+        const province_code = state || checkout_request.checkout.shipping_address.province_code
+
+        const checkout_data = await Checkout.findOne({ token: id, province: province_code })
+
         const no_changes = checkout_data && checkout_data.updated_at && checkout_data.updated_at.getTime() == new Date(checkout_request.checkout.updated_at).getTime()
         const domestik = checkout_request.checkout && checkout_request.checkout.shipping_address && checkout_request.checkout.shipping_address.country_code == "US"
         if (no_changes || !domestik) {
@@ -97,20 +101,14 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
         }
 
         const all_line_items = checkout_request.checkout.line_items;
-
         const existing_line_items = all_line_items.filter(line_item => line_item.vendor != "ENDS_taxer").map(line_item => { return { variant_id: line_item.variant_id, quantity: line_item.quantity } })
-        const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop)
+        const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop, province_code)
+        const tax_price = tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax
         const line_items_with_tax = [
-            tax_line_item,
+            ...(tax_price > 0 ? [tax_line_item] : []),
             ...existing_line_items,
         ]
-
-        if (!(tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax > 0)) {
-            ctx.status = 304;
-            ctx.body = { yaay: "ok" };
-            return
-        }
-
+        
         const update_checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
             method: 'PUT',
             headers: {
@@ -136,6 +134,7 @@ router.get(`/addtaxes/:shop_name/:id`, cors(), async (ctx) => {
                 $set: {
                     token: checkout_request.checkout.token,
                     shop: name,
+                    province: province_code,
                     updated_at: new Date(update_checkout_request.checkout.updated_at)
                 }
             },
@@ -325,8 +324,8 @@ function getUnitfromString(unit, text) {
     return typeof result == "number" && result
 }
 
-async function getTaxLineItem(checkout, shop) {
-    const total_tax = await calculateTotalTaxByCheckout(checkout, checkout.shipping_address.province_code, shop)
+async function getTaxLineItem(checkout, shop, province_code) {
+    const total_tax = await calculateTotalTaxByCheckout(checkout, province_code, shop)
     const tax_product = (await getTaxProduct(shop)) || (await createTaxProduct(shop));
     const variant_id = tax_product && tax_product.variants && tax_product.variants[0] && tax_product.variants[0].id;
 
