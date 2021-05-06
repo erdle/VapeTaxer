@@ -64,11 +64,17 @@ router.get(`/getVariantTax/:shop_name/:variant_id/:state`, cors(), async (ctx) =
 })
 
 
-router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
+router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
     ///TODO add api key for shop
-    const { id, shop_name, state } = ctx.params;
-
+    const { id, shop_name, state, country } = ctx.params;
     const shop = await Shop.findOne({ name: shop_name })
+
+    if (!shop) {
+        console.log(`no shop ${shop}`)
+        ctx.status = 404;
+        ctx.body = "shop not found please install the app in your shop";
+        return
+    }
 
     const { name, accessToken } = shop
 
@@ -83,30 +89,42 @@ router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
         })).json()
 
         if (checkout_request.errors) {
+            console.log(checkout_request.errors)
             ctx.status = 500;
             ctx.body = checkout_request.errors;
             return
         }
-        const province_code = state || checkout_request.checkout.shipping_address.province_code
 
-        const checkout_data = await Checkout.findOne({ token: id, province: province_code })
+        const province_code = state || checkout_request.checkout.shipping_address.province_code
+        const country_code = country || (checkout_request.checkout && checkout_request.checkout.shipping_address && checkout_request.checkout.shipping_address.country_code)
+
+        const checkout_data = await Checkout.findOne({ token: id, province: province_code, country: country_code })
 
         const no_changes = checkout_data && checkout_data.updated_at && checkout_data.updated_at.getTime() == new Date(checkout_request.checkout.updated_at).getTime()
-        const domestik = checkout_request.checkout && checkout_request.checkout.shipping_address && checkout_request.checkout.shipping_address.country_code == "US"
-        if (no_changes || !domestik) {
+
+        if (no_changes) {
             ctx.status = 304;
             ctx.body = { yaay: "ok" };
             return
         }
 
+
         const all_line_items = checkout_request.checkout.line_items;
-        const existing_line_items = all_line_items.filter(line_item => line_item.vendor != "ENDS_taxer").map(line_item => { return { variant_id: line_item.variant_id, quantity: line_item.quantity } })
-        const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop, province_code)
-        const tax_price = tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax
-        const line_items_with_tax = [
-            ...(tax_price > 0 ? [tax_line_item] : []),
-            ...existing_line_items,
-        ]
+        const ordinary_line_items = all_line_items.filter(line_item => line_item.vendor != "ENDS_taxer").map(line_item => { return { variant_id: line_item.variant_id, quantity: line_item.quantity } })
+
+        const final_line_items = [...ordinary_line_items]
+
+        if (country_code === 'US') {
+            const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop, province_code)
+            const tax_price = tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax
+            if (tax_price > 0)
+                final_line_items.push(tax_line_item)
+        }
+        else if (all_line_items.length === final_line_items.length) {
+            ctx.status = 304;
+            ctx.body = { yaay: "ok" };
+            return
+        }
 
         const update_checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
             method: 'PUT',
@@ -116,7 +134,7 @@ router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
             },
             body: JSON.stringify({
                 checkout: {
-                    "line_items": line_items_with_tax
+                    "line_items": final_line_items
                 }
             })
         })).json()
@@ -134,6 +152,7 @@ router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
                     token: checkout_request.checkout.token,
                     shop: name,
                     province: province_code,
+                    country: country_code,
                     updated_at: new Date(update_checkout_request.checkout.updated_at)
                 }
             },
@@ -143,6 +162,7 @@ router.get(`/addtaxes/:shop_name/:id/:state*`, cors(), async (ctx) => {
         ctx.body = { updated_at: update_checkout_request.checkout.updated_at };
     }
     catch (e) {
+        console.log(e)
         ctx.status = 500;
         ctx.body = e;
     }
@@ -327,6 +347,10 @@ function getUnitfromString(unit, text, inverse = false) {
 }
 
 async function getTaxLineItem(checkout, shop, province_code) {
+    const domestik = checkout.shipping_address && checkout.shipping_address.country_code == "US"
+    if (!domestik)
+        return
+
     const total_tax = await calculateTotalTaxByCheckout(checkout, province_code, shop)
     const tax_product = (await getTaxProduct(shop)) || (await createTaxProduct(shop));
     const variant_id = tax_product && tax_product.variants && tax_product.variants[0] && tax_product.variants[0].id;
