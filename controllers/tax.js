@@ -77,7 +77,6 @@ router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
     }
 
     const { name, accessToken } = shop
-
     try {
 
         const checkout_request = await (await fetch(`https://${name}/admin/api/2021-04/checkouts/${id}.json`, {
@@ -107,7 +106,6 @@ router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
             ctx.body = { yaay: "ok" };
             return
         }
-
 
         const all_line_items = checkout_request.checkout.line_items;
         const ordinary_line_items = all_line_items.filter(line_item => line_item.vendor != "ENDS_taxer").map(line_item => { return { variant_id: line_item.variant_id, quantity: line_item.quantity } })
@@ -169,7 +167,6 @@ router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
 
 })
 
-
 async function calculateTotalTaxByVariant(variantId, state, shop) {
 
     const tax_rates = await TaxRate.find({ "state.shortcode": state, shop: shop.name })
@@ -219,7 +216,7 @@ async function calculateTotalTaxByCheckout(checkout, state, shop) {
     const line_items = checkout.line_items;
 
     const tax_rates = await TaxRate.find({ "state.shortcode": state, shop: shop.name })
-
+    const all_rates = await TaxRate.find({ })
     let total_tax = 0
     for (const line_item of line_items) {
         total_tax += await calcLineTaxes(line_item, tax_rates, checkout.token, shop)
@@ -270,7 +267,6 @@ async function calcLineTaxes(line_item, tax_rates, token, shop) {
 }
 
 function checkOutofBounds(tax_rate, variant, product) {
-
     const { bound } = tax_rate
     if (!bound || !bound.unit)
         return false
@@ -328,7 +324,7 @@ function getUnitValue(unit, variant_title, product_title, inverse = false) {
 }
 
 function getUnitfromString(unit, text, inverse = false) {
-    const regexp_string = inverse ? `(\\s*(${unit} ?)\\d+(?:.\\d+)?)` : `(\\d+(?:.\\d+)?)\\s*(${unit})`;
+    const regexp_string = inverse ? `(\\s*(${unit} ?)\\d+(\\.?\\d+)?)` : `(\\d+(?:\\.\\d+)?)\\s*(${unit})`;
     const regex = new RegExp(regexp_string, 'i')
     const reg_match = text.match(regex)
 

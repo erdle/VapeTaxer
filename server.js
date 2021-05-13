@@ -16,8 +16,8 @@ const bodyParser = require('koa-bodyparser');
 const fs = require('fs')
 
 const port = process.env.PORT || 5000;
-const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, MONGO_CONNECTION } = process.env;
-
+const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, MONGO_CONNECTION, NODE_ENV } = process.env;
+console.log(`NODE_ENV - ${NODE_ENV}`)
 const app = new Koa();
 const router = new Router();
 
@@ -26,6 +26,7 @@ const Shop = require("./models/Shop")
 
 const tax = require("./controllers/tax")
 const taxRateApi = require("./controllers/taxRate")
+const reportApi = require("./controllers/report")
 
 router
   .get('/install', (ctx, next) => {
@@ -37,23 +38,14 @@ app.use(bodyParser())
 app.use(router.routes())
   .use(router.allowedMethods())
 
-// .use(async (ctx, next) => {
-//   ctx.session = { shop: "babstest.myshopify.com" }
-//   try {
-//     await next();
-//   } catch (err) {
-//     ctx.status = err.status || 500;
-//     ctx.body = err.message;
-//     ctx.app.emit('error', err, ctx);
-//   }
-// })
+
+
 
 app.use(mount('/api/tax', tax.middleware()))
 
-app
-  // sets up secure session data on each request
-  .use(session({ secure: true, sameSite: 'none' }, app))
-  .use(async (ctx, next) => {
+if (NODE_ENV === 'development') {
+  app.use(async (ctx, next) => {
+    ctx.session = { shop: "babstest.myshopify.com" }
     try {
       await next();
     } catch (err) {
@@ -62,52 +54,53 @@ app
       ctx.app.emit('error', err, ctx);
     }
   })
-  .use(
-    shopifyAuth({
-      apiKey: SHOPIFY_API_KEY,
-      secret: SHOPIFY_API_SECRET,
-      scopes: ['write_products', 'write_inventory', 'write_orders', 'write_checkouts', 'read_product_listings', 'unauthenticated_read_product_listings'],
+}
+else {
 
-      accessMode: 'offline',
-      async afterAuth(ctx) {
-        const { shop, accessToken } = ctx.session;
-        
-        const { orgin } = ctx.request
-        await Shop.findOneAndUpdate(
-          { name: shop },
-          {
-            $set: {
-              accessToken: accessToken,
-              name: shop,
-            }
-          },
-          { upsert: true }).exec();
+  app
+    // sets up secure session data on each request
+    .use(session({ secure: true, sameSite: 'none' }, app))
+    .use(async (ctx, next) => {
+      try {
+        await next();
+      } catch (err) {
+        ctx.status = err.status || 500;
+        ctx.body = err.message;
+        ctx.app.emit('error', err, ctx);
+      }
+    })
+    .use(
+      shopifyAuth({
+        apiKey: SHOPIFY_API_KEY,
+        secret: SHOPIFY_API_SECRET,
+        scopes: ['write_products', 'write_inventory', 'write_orders', 'write_checkouts', 'read_product_listings', 'unauthenticated_read_product_listings'],
+
+        accessMode: 'offline',
+        async afterAuth(ctx) {
+          const { shop, accessToken } = ctx.session;
+
+          const { orgin } = ctx.request
+          await Shop.findOneAndUpdate(
+            { name: shop },
+            {
+              $set: {
+                accessToken: accessToken,
+                name: shop,
+              }
+            },
+            { upsert: true }).exec();
+          return ctx.redirect('/');
+        },
+      }),
+    )
+    // everything after this point will require authentication
+    .use(verifyRequest({ fallbackRoute: '/install', authRoute: '/auth', }))
+}
 
 
-        // const webhook = {
-        //   "topic": "orders/create",
-        //   "address": `${orgin}/api/tax/webhook`,
-        //   "format": "json"
-        // }
+app.use(mount('/api/taxrates', taxRateApi.middleware()))
+app.use(mount('/api/reporting', reportApi.middleware()))
 
-        // const create_webhook_request = await (await fetch(`https://${shop}/admin/api/2021-04/webhooks.json`, {
-        //   method: 'POST',
-        //   headers: {
-        //     'X-Shopify-Access-Token': accessToken,
-        //     'content-type': 'application/json'
-        //   },
-        //   body: JSON.stringify({ webhook })
-        // })).json()
-
-
-        return ctx.redirect('/');
-      },
-    }),
-  )
-  // everything after this point will require authentication
-  .use(verifyRequest({ fallbackRoute: '/install', authRoute: '/auth', }))
-
-  app.use(mount('/api/taxrates', taxRateApi.middleware()))
 
 app.on('error', (err, ctx) => {
   console.log('error', err);
