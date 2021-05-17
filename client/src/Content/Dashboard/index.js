@@ -9,7 +9,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import { BrowserRouter as Router, Route, Switch, useRouteMatch,useHistory } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch, useRouteMatch, useHistory } from "react-router-dom";
 import LeftMenu from '../../LeftMenu'
 import MainRoutes from "./MainRoutes"
 import { AppProvider, TopBar, Frame, Layout, ContextualSaveBar } from '@shopify/polaris';
@@ -69,7 +69,7 @@ export default function Dashboard() {
         items={[
           {
             // url: `${match.url}`,
-            onClick:()=>{
+            onClick: () => {
               history.push(`/dashboard/`)
             },
             label: 'Dashboard',
@@ -77,31 +77,23 @@ export default function Dashboard() {
           },
           {
             // url: `${match.url}`,
-            onClick:()=>{
-              history.push(`/dashboard/States`)
-            },
-            label: 'States',
-            icon: HomeMajor,
-          },
-          {
-            // url: `${match.url}`,
-            onClick:()=>{
-              history.push(`/dashboard/Taxes`)
-            },
-            label: 'Taxes',
-            icon: HomeMajor,
-          },
-          {
-            // url: `${match.url}`,
-            onClick:()=>{
+            onClick: () => {
               history.push(`/dashboard/TaxRates`)
             },
             label: 'TaxRates',
             icon: HomeMajor,
           },
           {
+            // url: `${match.url}`,
+            onClick: () => {
+              history.push(`/dashboard/Products`)
+            },
+            label: 'Products',
+            icon: HomeMajor,
+          },
+          {
             // url: `${match.url}/Settings`,
-            onClick:()=>{
+            onClick: () => {
               history.push(`/dashboard/Settings`)
             },
             label: 'Settings',
@@ -127,7 +119,7 @@ export default function Dashboard() {
             save: 'Save',
             discard: 'Discard',
           },
-          DropZone:  {
+          DropZone: {
             FileUpload: {
               actionTitleImage: "Add media",
               actionHintImage: "or drop files to upload"

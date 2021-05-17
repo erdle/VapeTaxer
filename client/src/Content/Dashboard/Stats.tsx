@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
+
 import {
     ButtonGroup,
     Select,
@@ -35,20 +36,7 @@ const Form: React.FC = () => {
                 <Layout.Section oneThird>
                     <Card title="Some cool stuff coming soon">
                         <Card.Section>
-                            {
-                                loading ? "Generating report..." :
-                                    <div>
-                                        <DisplayText size="large">Press button for generating CA report</DisplayText>
-                                        <ButtonGroup>
-                                            <Button primary onClick={generateAprilReport}>April report</Button>
-                                            <Button primary onClick={generateMarchReport}>March report</Button>
-                                        </ButtonGroup>
-                                        <div>
-                                            {aprilLink && <div><a target="_blank" href={aprilLink} download="april_CA">Download april_CA.pdf</a></div>}
-                                            {marchLink && <div><a target="_blank" href={marchLink} download="march_CA">Download march_CA.pdf</a></div>}
-                                        </div>
-                                    </div>
-                            }
+                            
                         </Card.Section>
                     </Card>
                 </Layout.Section>
@@ -56,8 +44,8 @@ const Form: React.FC = () => {
                 </Layout.Section>
             </Layout >
         </Page>
-
     </div >
 }
+
 
 export default Form

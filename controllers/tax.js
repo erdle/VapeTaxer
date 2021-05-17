@@ -63,7 +63,6 @@ router.get(`/getVariantTax/:shop_name/:variant_id/:state`, cors(), async (ctx) =
     ctx.body = { tax: result };
 })
 
-
 router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
     ///TODO add api key for shop
     const { id, shop_name, state, country } = ctx.params;
@@ -112,11 +111,23 @@ router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
 
         const final_line_items = [...ordinary_line_items]
 
+        const old_tax_item = all_line_items.find(line_item => line_item.vendor === "ENDS_taxer")
+        const old_tax_total = old_tax_item && old_tax_item.properties && old_tax_item.properties.excise_tax
         if (country_code === 'US') {
             const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop, province_code)
             const tax_price = tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax
+            if(tax_price == old_tax_total){
+                ctx.status = 304;
+                ctx.body = { yaay: "ok" };
+                return
+            }
             if (tax_price > 0)
                 final_line_items.push(tax_line_item)
+            else if(all_line_items.length === final_line_items.length){
+                ctx.status = 304;
+                ctx.body = { yaay: "ok" };
+                return
+            }
         }
         else if (all_line_items.length === final_line_items.length) {
             ctx.status = 304;
