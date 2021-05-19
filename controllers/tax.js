@@ -319,7 +319,8 @@ async function calcConcreteTax(state_tax, variant, product, shop) {
             return state_tax.value * number_of_packs * 100 * bundle
         }
         case 'ml_fixed': {
-            const mil = getUnitValue('ml', variant.title, product.title) || 60
+            const mil_default_value = state_tax.tax && state_tax.tax.tag == 'PACT-disposable' ? 1.4 : 60
+            const mil = getUnitValue('ml', variant.title, product.title) || mil_default_value
             const bundle = getUnitValue('x', variant.title, product.title) || getUnitValue('x', variant.title, product.title, true) || 1
             return state_tax.value * mil * 100 * bundle
         }
