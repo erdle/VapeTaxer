@@ -13,5 +13,7 @@
             "protocol": "inspector",
             "timeout": 20000
         }
-    ]
+    ],
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "javascript.preferences.importModuleSpecifier": "non-relative"
 }

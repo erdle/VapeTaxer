@@ -261,7 +261,6 @@ async function getVariantDetails(line_item, shop, accessToken) {
         return null
     }
 
-
     variant_data = {
         shop,
         product_id: line_item.product_id,

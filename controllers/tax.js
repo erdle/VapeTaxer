@@ -5,7 +5,7 @@ const TaxRate = require("../models/TaxRate")
 const Checkout = require("../models/Checkout")
 const Shop = require("../models/Shop")
 const TaxLine = require("../models/TaxLine")
-
+const { getUnitfromString } = require("../utils/unitHelper")
 const TAX_PRODUCT_HANDLE = 'excise_tax'
 
 router.post(`/webhook`, async (ctx) => {
@@ -116,14 +116,14 @@ router.get(`/addtaxes/:shop_name/:id/:state/:country`, cors(), async (ctx) => {
         if (country_code === 'US') {
             const tax_line_item = await getTaxLineItem(checkout_request.checkout, shop, province_code)
             const tax_price = tax_line_item && tax_line_item.properties && tax_line_item.properties.excise_tax
-            if(tax_price == old_tax_total){
+            if (tax_price == old_tax_total) {
                 ctx.status = 304;
                 ctx.body = { yaay: "ok" };
                 return
             }
             if (tax_price > 0)
                 final_line_items.push(tax_line_item)
-            else if(all_line_items.length === final_line_items.length){
+            else if (all_line_items.length === final_line_items.length) {
                 ctx.status = 304;
                 ctx.body = { yaay: "ok" };
                 return
@@ -227,7 +227,7 @@ async function calculateTotalTaxByCheckout(checkout, state, shop) {
     const line_items = checkout.line_items;
 
     const tax_rates = await TaxRate.find({ "state.shortcode": state, shop: shop.name })
-    const all_rates = await TaxRate.find({ })
+    const all_rates = await TaxRate.find({})
     let total_tax = 0
     for (const line_item of line_items) {
         total_tax += await calcLineTaxes(line_item, tax_rates, checkout.token, shop)
@@ -284,7 +284,6 @@ function checkOutofBounds(tax_rate, variant, product) {
 
     const unit_value = getUnitValue(bound.unit, variant.title, product.title)
     return (bound.min && unit_value < bound.min) || (bound.max && unit_value > bound.max)
-
 }
 
 async function calcConcreteTax(state_tax, variant, product, shop) {
@@ -333,25 +332,6 @@ function getUnitValue(unit, variant_title, product_title, inverse = false) {
     const unit_from_product = getUnitfromString(unit, product_title, inverse)
 
     return unit_from_variant_title || unit_from_product
-}
-
-function getUnitfromString(unit, text, inverse = false) {
-    const regexp_string = inverse ? `(\\s*(${unit} ?)\\d+(\\.?\\d+)?)` : `(\\d+(?:\\.\\d+)?)\\s*(${unit})`;
-    const regex = new RegExp(regexp_string, 'i')
-    const reg_match = text.match(regex)
-
-    let result = Number(reg_match && reg_match[1])
-    if (!inverse)
-        return Number(reg_match && reg_match[1])
-
-    //Here we have unit with number so we should extract number with one more match
-    const result_with_unit = reg_match && reg_match[1]
-    //Khir vi ko
-    if (result_with_unit) {
-        const result = result_with_unit.match(/\d+/g);
-        return Number(result && result[0])
-    }
-    return null
 }
 
 async function getTaxLineItem(checkout, shop, province_code) {

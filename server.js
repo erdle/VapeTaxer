@@ -21,12 +21,14 @@ console.log(`NODE_ENV - ${NODE_ENV}`)
 const app = new Koa();
 const router = new Router();
 
+
 const TaxRate = require("./models/TaxRate")
 const Shop = require("./models/Shop")
 
 const tax = require("./controllers/tax")
 const taxRateApi = require("./controllers/taxRate")
 const reportApi = require("./controllers/report")
+const productApi = require("./controllers/product")
 
 router
   .get('/install', (ctx, next) => {
@@ -45,7 +47,8 @@ app.use(mount('/api/tax', tax.middleware()))
 
 if (NODE_ENV === 'development') {
   app.use(async (ctx, next) => {
-    ctx.session = { shop: "babstest.myshopify.com" }
+    const dev_shop = await Shop.findOne({ name: "babstest.myshopify.com" })
+    ctx.session = { shop: dev_shop.name, accessToken: dev_shop.accessToken }
     try {
       await next();
     } catch (err) {
@@ -56,7 +59,6 @@ if (NODE_ENV === 'development') {
   })
 }
 else {
-
   app
     // sets up secure session data on each request
     .use(session({ secure: true, sameSite: 'none' }, app))
@@ -80,6 +82,8 @@ else {
           const { shop, accessToken } = ctx.session;
 
           const { orgin } = ctx.request
+
+
           await Shop.findOneAndUpdate(
             { name: shop },
             {
@@ -89,6 +93,8 @@ else {
               }
             },
             { upsert: true }).exec();
+
+
           return ctx.redirect('/');
         },
       }),
@@ -97,10 +103,9 @@ else {
     .use(verifyRequest({ fallbackRoute: '/install', authRoute: '/auth', }))
 }
 
-
 app.use(mount('/api/taxrates', taxRateApi.middleware()))
 app.use(mount('/api/reporting', reportApi.middleware()))
-
+app.use(mount('/api/products', productApi.middleware()))
 
 app.on('error', (err, ctx) => {
   console.log('error', err);
