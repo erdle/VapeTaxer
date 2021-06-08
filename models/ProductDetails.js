@@ -18,8 +18,10 @@ const ProductDetails = new Schema({
 
     variants: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "VariantDetails"
-    }]
+        ref: "VariantDetails",
+        default: []
+    }],
+    approved: { type: Boolean, default: false },
 
 });
 

@@ -49,7 +49,7 @@ router.get(`/:from/:to/:state`, async (ctx) => {
         if (order.source_name != "web" || order.fulfillment_status != "fulfilled")
             continue;
 
-        const shipping_address = order.shipping_address
+        const shipping_address = order.shipping_address;
         const customer_name = `${shipping_address.first_name} ${shipping_address.last_name}`
         const address = `${shipping_address.address1} ${shipping_address.city} ${shipping_address.province_code} ${shipping_address.country_code}`
         const invoice_date = (new Date(order.created_at)).toLocaleDateString()
@@ -62,14 +62,14 @@ router.get(`/:from/:to/:state`, async (ctx) => {
             const nicotine = getUnitValue('mg', line_item.variant_title, line_item.title)
             if (nicotine > 0) {
                 type = 'WithNicotine'
-            } 
-            else if(nicotine == 0 && line_item.name.indexOf("mg") > -1){
+            }
+            else if (nicotine == 0 && line_item.name.indexOf("mg") > -1) {
                 type = 'NoNicotine'
             }
-            else{
+            else {
                 type = 'Other'
             }
-            
+
             if (state == "NY") {
                 const is_liquid = await is_E_Liquid(line_item.product_id, shop, accessToken)
                 if (is_liquid) {
@@ -102,6 +102,7 @@ router.get(`/:from/:to/:state`, async (ctx) => {
             const final_sale_price = state == "CA" ? (sales_price / quantity) : sales_price
             const final_cost = state == "CA" ? cost / quantity : cost
 
+            const fixed_barcode = barcode ? (barcode.length > 12 ? barcode.substring(1) : barcode) : "None"
             totals.weight += isNaN(Number(weight)) ? 0 : Number(weight);
             totals.price += final_sale_price;
             totals.cost += final_cost;
@@ -114,7 +115,7 @@ router.get(`/:from/:to/:state`, async (ctx) => {
                 invoice_date,
                 invoice_number,
                 quantity,
-                barcode: (barcode || 'None'),
+                barcode: fixed_barcode,
                 weight,
                 sales_price: final_sale_price,
                 cost: final_cost,
@@ -166,6 +167,7 @@ router.get(`/:from/:to/:state`, async (ctx) => {
     ctx.response.set("content-disposition", "attachment; filename=test.pdf");
     const report_html_content = GetHTML(report_data, state == "CA" ? "california" : "default")
     ctx.body = await GeneratePDF(report_html_content)
+    // ctx.body = { report_data }
 })
 
 async function is_E_Liquid(product_id, shop, accessToken) {

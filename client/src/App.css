@@ -1000,3 +1000,24 @@ span.Polaris-Tag {
 .Polaris-Badge{
   text-transform: capitalize;
 }
+
+
+.info_icon_wrapper button.Polaris-Button.Polaris-Button--plain {
+  padding: 0;
+  /* font-size: 1rem !important; */
+}
+
+.info_icon_wrapper span.Polaris-Icon {
+  display: inline-block;
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
+.info_icon_wrapper .Polaris-Button::after,
+.info_icon_wrapper .Polaris-Button--plain > .Polaris-Button__Content::after {
+  display: none !important;
+}
+
+.info_icon_wrapper .Polaris-Button {
+  min-height:initial !important;
+}

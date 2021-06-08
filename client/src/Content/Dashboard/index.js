@@ -13,7 +13,7 @@ import { BrowserRouter as Router, Route, Switch, useRouteMatch, useHistory } fro
 import LeftMenu from '../../LeftMenu'
 import MainRoutes from "./MainRoutes"
 import { AppProvider, TopBar, Frame, Layout, ContextualSaveBar } from '@shopify/polaris';
-import { ArrowLeftMinor, ConversationMinor, ProductsMajor, HomeMajor, OrdersMajor, CollectionsMajor, InventoryMajor } from '@shopify/polaris-icons';
+import { ArrowLeftMinor, SettingsMajor, ProductsMajor, HomeMajor, TaxMajor, ConversationMinor } from '@shopify/polaris-icons';
 
 import '@shopify/polaris/dist/styles.css';
 import { Navigation } from '@shopify/polaris';
@@ -65,7 +65,7 @@ export default function Dashboard() {
       />
       <Navigation.Section
         separator
-        title="Prodify"
+        title="Excise tax helper"
         items={[
           {
             // url: `${match.url}`,
@@ -81,7 +81,7 @@ export default function Dashboard() {
               history.push(`/dashboard/TaxRates`)
             },
             label: 'TaxRates',
-            icon: HomeMajor,
+            icon: TaxMajor,
           },
           {
             // url: `${match.url}`,
@@ -89,7 +89,7 @@ export default function Dashboard() {
               history.push(`/dashboard/Products`)
             },
             label: 'Products',
-            icon: HomeMajor,
+            icon: ProductsMajor,
           },
           {
             // url: `${match.url}/Settings`,
@@ -97,7 +97,7 @@ export default function Dashboard() {
               history.push(`/dashboard/Settings`)
             },
             label: 'Settings',
-            icon: OrdersMajor,
+            icon: SettingsMajor,
           },
         ]}
         action={{

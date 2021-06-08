@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { DataTable, Link, Button, Icon, ButtonGroup, Stack, TextContainer } from '@shopify/polaris';
+import { Badge, DataTable, Link, Button, Icon, ButtonGroup, Stack, TextContainer } from '@shopify/polaris';
 import { toArrayOfProps } from "../../../utils/dataTableHelper"
 import {
     ChevronLeftMinor,
@@ -29,8 +29,10 @@ export default function ProductsList({ producstGetter }) {
         handleChangePage(page - 1, count)
     }, [page, count])
 
+
     const columns = [
-        { name: "title", renderer: (product) => <Link removeUnderline url={`/dashboard/Listings/edit/${product['_id']}`}>{product["title"]}</Link> },
+        { name: "title", renderer: (product) => <Link removeUnderline url={`/dashboard/Products/Validate/${product['_id']}`}>{product["title"]}</Link> },
+        { name: "status", renderer: (product) => product.approved ? <Badge status="success">Approved</Badge> : <Badge status="attention">Pending</Badge> },
         { name: "vendor" },
         { name: "product_type" },
     ]
@@ -54,10 +56,12 @@ export default function ProductsList({ producstGetter }) {
             columnContentTypes={[
                 'text',
                 'text',
+                'text',
                 'text'
             ]}
             headings={[
                 'Product',
+                'Status',
                 'Vendor',
                 'Type',
             ]}

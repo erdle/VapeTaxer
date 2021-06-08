@@ -43,7 +43,8 @@
     "react-swipeable-views": "^0.13.9",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
-    "resolve-url-loader": "^3.1.2"
+    "resolve-url-loader": "^3.1.2",
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
     "concurrently": "^4.1.2",
