@@ -4,6 +4,7 @@
   "private": true,
   "proxy": "http://localhost:5000/",
   "dependencies": {
+    "@additionapps/polaris-form-builder": "^2.7.0",
     "@material-ui/core": "^4.9.4",
     "@material-ui/icons": "^4.9.1",
     "@shopify/polaris": "^6.0.1",

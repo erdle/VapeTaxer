@@ -2,6 +2,8 @@ import React from "react"
 import { BrowserRouter as Router, Route, Redirect, useParams, Switch } from "react-router-dom"
 import Templates from "../Templates"
 import TemplateDetails from "../TemplateDetails"
+import TaxRates from "./TaxRates/TaxRates"
+import Settings from "./Settings/Settings"
 
 import Stats from "./Stats"
 import Products from "./Products/Index"
