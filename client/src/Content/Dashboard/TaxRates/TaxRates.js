@@ -1,66 +1,96 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { DataTable, Link, Button, Icon, ButtonGroup, Stack, TextContainer, Tag } from '@shopify/polaris';
+import { Modal, TextStyle, DataTable, Link, Button, Icon, ButtonGroup, Stack, TextContainer, Tag } from '@shopify/polaris';
 import { toArrayOfProps } from "../../../utils/dataTableHelper"
+import { getLastMonthPDF } from '../../../services/reports'
 
 import {
     ChevronLeftMinor,
     ChevronRightMinor
 } from '@shopify/polaris-icons';
+
+
 export default function TaxRatesList({ taxRateGetter }) {
-    const page_size = 20 //TODO config
+    const [stateRates, setStateRates] = useState([]);
     const [taxRateRows, settaxRateRows] = useState([]);
-    const [page, setPage] = useState(0);
-    const [count, setCount] = useState(0);
+    const [reportFileLoading, setReportFileLoading] = useState({});
 
-    const handleChangePage = (newPage = 0) => {
-        if (newPage >= 0 && count / page_size >= newPage) {
-            setPage(newPage);
-            taxRateGetter && taxRateGetter(newPage, page_size).then(res => {
-                const rows = toArrayOfProps(res.data, columns)
-                setCount(res.count)
-                settaxRateRows(rows);
-            }).catch(err => { console.log(err) })
-        }
-    };
-
-    const nextPage = useCallback(() => {
-        handleChangePage(page + 1, count)
-    }, [page, count])
-    const previousPage = useCallback(() => {
-        handleChangePage(page - 1, count)
-    }, [page, count])
-
-    const columns = [
-        { name: "state", renderer: (tax_rate) => <div>{tax_rate.state.name} ({tax_rate.state.shortcode})</div> },
-        { name: "product", renderer: (tax_rate) => <div>{tax_rate.tax.name} <Tag>{tax_rate.tax.tag}</Tag></div> },
-        {
-            name: "taxType", renderer: (tax_rate) => {
-
-                const { unit, min, max } = (tax_rate.bound || {})
-                const from = min ? `From ${min}${unit}` : ''
-                const to = max ? `To ${max}${unit}` : ''
-
-                return <div>{tax_rate.taxType} {unit && <Tag> {from} {to} </Tag>}</div>
-            }
-        },
-        { name: "value" },
-    ]
     useEffect(() => {
-        handleChangePage()
+        taxRateGetter && taxRateGetter().then(res => {
+            const states_taxes = res.data.sort((a, b) => {
+                if (a.state_name < b.state_name) { return -1; }
+                if (a.state_name > b.state_name) { return 1; }
+                return 0;
+            })
+            setStateRates(states_taxes)
+        }).catch(err => { console.log(err) })
     }, [taxRateGetter])
 
-    const tableFooter = <Stack on alignment="center">
-        <ButtonGroup segmented>
-            <Button onClick={previousPage} disabled={page == 0} icon={ChevronLeftMinor} />
-            <Button onClick={nextPage} disabled={((page + 1) * page_size >= count)} icon={ChevronRightMinor} />
-        </ButtonGroup>
-        <TextContainer>
-            {`Showing ${page * page_size + 1} - ${page * page_size + taxRateRows.length} of ${count} results`}
-        </TextContainer>
-    </Stack>
+    useEffect(() => {
+        const rows = toArrayOfProps(stateRates, columns)
+        settaxRateRows(rows);
+    }, [stateRates, reportFileLoading])
+
+    const tax_type_suffixes = {
+        'cost_percent': '% of cost',
+        'price_percent': '% of Retail price',
+        'item_fixed': '/per item',
+        'ml_fixed': '/ml',
+        'per_pod_or_cartridge': '/per pod',
+    }
+
+    const downloadLastMonthPDF = (state) => {
+        setReportFileLoading({ ...reportFileLoading, [state]: true })
+        getLastMonthPDF(state).then(async (blob) => {
+            // Create blob link to download
+            const url = window.URL.createObjectURL(
+                new Blob([blob]),
+            );
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            const now = new Date()
+            const last_month = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+            const month = monthNames[last_month.getMonth()]
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute(
+                'download',
+                `${state} ${month}.pdf`,
+            );
+
+            // Append to html link element page
+            document.body.appendChild(link);
+
+            // Start download
+            link.click();
+
+            // Clean up and remove the link
+            link.parentNode.removeChild(link);
+            setReportFileLoading({ ...reportFileLoading, [state]: false })
+        })
+    }
+    const columns = [
+        { name: "state", renderer: (state_taxes) => <div>{state_taxes.state_name}</div> },
+        { name: "E-Liquid", renderer: (state_taxes) => tax_value_renderer(state_taxes['PACT-eliquid']) },
+        { name: "0% Nicotine", renderer: (state_taxes) => tax_value_renderer(state_taxes['PACT-eliquid_freebase']) },
+        { name: "PRE-FILLED / POD", renderer: (state_taxes) => tax_value_renderer(state_taxes['PACT-prefilled-pods']) },
+        { name: "DEVICES & KITS", renderer: (state_taxes) => tax_value_renderer(state_taxes['PACT-device']) },
+        { name: "ACCESSORIES", renderer: (state_taxes) => tax_value_renderer(state_taxes['PACT-accessory']) },
+        { name: "Report", renderer: (state_taxes) => <Button plain loading={reportFileLoading[state_taxes.state_shortcode]} onClick={() => downloadLastMonthPDF(state_taxes.state_shortcode)}>Downlad PACT act</Button> }
+    ]
+
+    const tax_value_renderer = (tax_rate) => {
+        if (!tax_rate || !tax_rate.value)
+            return <TextStyle variation="subdued">No tax</TextStyle>
+        return <div> {tax_rate.value}{tax_type_suffixes[tax_rate.taxType]}</div>
+    }
+
     return <>
         <DataTable
             columnContentTypes={[
+                'text',
+                'text',
+                'text',
                 'text',
                 'text',
                 'text',
@@ -68,12 +98,15 @@ export default function TaxRatesList({ taxRateGetter }) {
             ]}
             headings={[
                 'State',
-                'Product',
-                'Calculation Type',
-                'Rate'
+                'E-Liquid',
+                '0% Nicotine',
+                'Pre-filled / Pod',
+                'Devices & Kits',
+                'Accessories',
+                ''
             ]}
             rows={taxRateRows}
-            footerContent={tableFooter}
         />
+
     </>
 }

@@ -7,7 +7,7 @@ import { useHistory, useRouteMatch } from "react-router-dom";
 import { Select, Card, DataTable, Page, Icon, Button, ButtonGroup, Link, TextContainer, Modal, TextField, FormLayout, Checkbox } from '@shopify/polaris';
 import { toArrayOfProps, Column } from "../../../utils/dataTableHelper"
 import { PlusMinor } from '@shopify/polaris-icons';
-import { getAll, create } from '../../../services/taxRates'
+import { getAll, create, getByState } from '../../../services/taxRates'
 import TaxRates from './TaxRates'
 
 const List = () => {
@@ -84,11 +84,11 @@ const List = () => {
   return (
     <Page title="Tax Rates"
       fullWidth
-      primaryAction={actions}
+      // primaryAction={actions}
     >
 
       <Card>
-        <TaxRates taxRateGetter={getAll} />
+        <TaxRates taxRateGetter={getByState} />
       </Card>
 
       <Modal

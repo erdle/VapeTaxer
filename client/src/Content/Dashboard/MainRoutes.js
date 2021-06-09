@@ -6,6 +6,8 @@ import TemplateDetails from "../TemplateDetails"
 import Stats from "./Stats"
 import Products from "./Products/Index"
 import Validate from "./Products/Validate"
+import TaxRates from "./TaxRates/Index"
+import Settings from "../Settings"
 import { useRouteMatch } from 'react-router-dom'
 
 export default function Routes() {
@@ -14,6 +16,8 @@ export default function Routes() {
   return <Switch>
     <Route exact path={`${match.path}/`} component={Stats} />
     <Route exact path={`${match.path}/Products`} component={Products} />
+    <Route exact path={`${match.path}/Settings`} component={Settings} />
+    <Route exact path={`${match.path}/TaxRates`} component={TaxRates} />
     <Route exact path={`${match.path}/Products/Validate/:id`} component={Validate} />
   </Switch>
 }

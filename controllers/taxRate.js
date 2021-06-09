@@ -11,6 +11,38 @@ router.get(`/:page/:page_size/:sort`, async (ctx) => {
     ctx.body = { data: tax_rates, count: count };
 })
 
+router.get(`/by_states`, async (ctx) => {
+    const { shop } = ctx.session;
+    const { page, sort, page_size } = ctx.params;
+    const count = await TaxRate.find({ shop }).count()
+    const tax_rates = await TaxRate.find({ shop });
+    const states_taxes = [];
+
+    tax_rates.forEach(tax_rate => {
+
+        const state_tax_item_data = {
+            taxType: tax_rate.taxType,
+            tag: tax_rate.tag,
+            value: tax_rate.value,
+        }
+
+        const state_data = states_taxes.find(st => st.state_shortcode == tax_rate.state.shortcode)
+        const token =  !!tax_rate.bound ? tax_rate.tax.tag : tax_rate.tax.tag + '_freebase'
+        if (state_data)
+            state_data[tax_rate.tax.tag] = state_tax_item_data
+        else
+            states_taxes.push({
+                [tax_rate.tax.tag]: state_tax_item_data,
+                state_shortcode: tax_rate.state.shortcode,
+                state_name: tax_rate.state.name
+            })
+
+    });
+
+    ctx.status = 200;
+    ctx.body = { data: states_taxes };
+})
+
 router.post('/', async (ctx) => {
     const { shop } = ctx.session;
     try {
@@ -23,7 +55,7 @@ router.post('/', async (ctx) => {
             taxType: data.taxType,
             value: data.value,
         }
-        
+
         if (data.bound_unit)
             tax_rate.bound = {
                 unit: data.bound_unit, min: data.bound_min, max: data.bound_max

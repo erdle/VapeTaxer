@@ -11,22 +11,9 @@ const httpsAgent = new https.Agent({
 const ProductDetails = require('../models/ProductDetails')
 const VariantDetails = require('../models/VariantDetails')
 
-const addProduct = async function (shop, accessToken, product) {
-    let request = await fetch(`https://${shop}/admin/products.json?limit=250`,
-        {
-            method: 'POST',
-            headers: {
-                'X-Shopify-Access-Token': accessToken,
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify({ product }),
-            agent: httpsAgent
-        });
-    const data = (await request.json());
-    return data;
-}
 
-const getAllProductsAndSave = async function (shop, accessToken, url = `https://${shop}/admin/products.json?limit=250`) {
+
+const getAllProductsAndSave = async function (shop, accessToken, url = `https://${shop}/admin/products.json?limit=5`) {
 
     let request = await fetch(url,
         {
@@ -99,6 +86,9 @@ async function SyncProductVariantsDetails(shop, accessToken, product_id) {
 
             const image = shopify_product.images.find(img => img.variant_ids.some(id => id === shopify_variant.id))
             const image_src = image && image.src;
+
+            const inventory_item_data = getVariantData(shop, accessToken, shopify_variant.inventory_item_id);
+
             const variant_details = await VariantDetails.findOneAndUpdate({ shop, shopify_variant_id: shopify_variant.id }, {
                 shop,
                 product: productDetails,
@@ -113,7 +103,8 @@ async function SyncProductVariantsDetails(shop, accessToken, product_id) {
                 image_src,
                 capacity: capacity,
                 contains_nicotine: contains_nicotine,
-                items_count: items_count
+                items_count: items_count,
+                cost: inventory_item_data.cost
 
             }, { upsert: true, new: true })
 
@@ -139,6 +130,23 @@ async function SyncProductVariantsDetails(shop, accessToken, product_id) {
 
 }
 
+
+async function getVariantData(shop, accessToken, id) {
+    const inventory_item_request = (await fetch(`https://${shop}/admin/api/2021-04/inventory_items/${id}.json`, {
+        method: 'GET',
+        headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'content-type': 'application/json'
+        }
+    }))
+
+    if (inventory_item_request.status == 429) {
+        sleep(1000)
+        return await getVariantData(shop, accessToken, id)
+    }
+    const inventory_item_shopify_data = await inventory_item_request.json()
+    return inventory_item_shopify_data;
+}
 
 function newVariantDetails(shop, product, shopify_variant) {
     const mil_default_value = product.tags.indexOf('PACT-disposable') > -1 ? 1.4 : 60;
@@ -315,4 +323,4 @@ async function getProductMetafields(shop, accessToken, product_id) {
     return data.metafields;
 }
 
-module.exports = { getAllProductsAndSave, addProduct, SyncProductVariantsDetails }
+module.exports = { getAllProductsAndSave, SyncProductVariantsDetails }

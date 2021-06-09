@@ -20,7 +20,7 @@ const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, MONGO_CONNECTION, NODE_ENV } = proc
 console.log(`NODE_ENV - ${NODE_ENV}`)
 const app = new Koa();
 const router = new Router();
-
+const { INITIAL_RATES } = require('./utils/taxRates')
 
 const TaxRate = require("./models/TaxRate")
 const Shop = require("./models/Shop")
@@ -94,7 +94,11 @@ else {
             },
             { upsert: true }).exec();
 
-
+          const rates = await TaxRate.find({ shop })
+          if (!rates || rates.length === 0) {
+            const store_initial_rates = INITIAL_RATES.map(r => { return { ...r, shop } });
+            await TaxRate.insertMany(store_initial_rates)
+          }
           return ctx.redirect('/');
         },
       }),

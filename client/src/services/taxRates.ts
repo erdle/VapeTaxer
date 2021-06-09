@@ -3,6 +3,8 @@ import { handleErrors } from "../utils/errorHandling_ts"
 export const getAll = (page = 0, page_size = 5, sort = 'created') => fetch(`/api/taxrates/${page}/${page_size}/${sort}`).then(handleErrors).then(response => response.json())
 export const getItem = (id: string) => fetch(`/api/taxrates/${id}`).then(handleErrors).then(response => response.json())
 
+export const getByState = () => fetch(`/api/taxrates/by_states`).then(handleErrors).then(response => response.json())
+
 export const create = (data: any) => {
     return fetch("/api/taxrates", {
         method: 'POST',
