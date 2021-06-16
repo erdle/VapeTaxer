@@ -5,6 +5,7 @@ import TemplateDetails from "../TemplateDetails"
 import TaxRates from "./TaxRates/TaxRates"
 import Settings from "./Settings/Settings"
 import GeneratePDF from './pdf/generatePDF'
+import downloadReport from './sdd/downloadReport'
 
 import Stats from "./Stats"
 import Products from "./Products/Index"
@@ -22,6 +23,7 @@ export default function Routes() {
     <Route exact path={`${match.path}/Settings`} component={Settings} />
     <Route exact path={`${match.path}/TaxRates`} component={TaxRates} />
     <Route exact path={`${match.path}/TaxRates/pdf`} component={GeneratePDF} />
+    <Route exact path={`${match.path}/TaxRates/sdd`} component={downloadReport} />
     <Route exact path={`${match.path}/Products/Validate/:id`} component={Validate} />
   </Switch>
 }

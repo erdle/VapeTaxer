@@ -1,0 +1,13 @@
+h3.Polaris-Subheading {
+    margin: 5px auto;
+}
+.flex {
+   display: flex;
+   justify-content: space-between;
+}
+.flex>div:first-of-type {
+    flex-grow: 0.6 !important;
+}
+.downloadBtn {
+    margin-top: 15px;
+}
