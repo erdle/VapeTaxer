@@ -34,7 +34,7 @@ const Form: React.FC = () => {
         <Page>
             <Layout>
                 <Layout.Section oneThird>
-                    <Card title="Some cool stuff coming soon">
+                    <Card title="Somess cool stuff coming soon">
                         <Card.Section>
                             
                         </Card.Section>

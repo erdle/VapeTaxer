@@ -1,18 +1,18 @@
 import React, {useCallback, useState} from 'react';
-import {Popover, ActionList, Button} from '@shopify/polaris';
-import DateFrom from './DateFrom'
+import {Popover, Button} from '@shopify/polaris';
+import Date from './Date'
 
-export default function PopoverFrom() {
+export default function PopoverFrom(props) {
     const [popoverActive, setPopoverActive] = useState(false);
   
     const togglePopoverActive = useCallback(
       () => setPopoverActive((popoverActive) => !popoverActive),
       [],
     );
-  
+  console.log(props)
     const activator = (
       <Button onClick={togglePopoverActive} disclosure>
-        From
+        {props.name ? props.name : 'From'}
       </Button>
     );
   
@@ -23,7 +23,7 @@ export default function PopoverFrom() {
           activator={activator}
           onClose={togglePopoverActive}
         >
-          <DateFrom />
+          <Date />
         </Popover>
       </div>
     );
